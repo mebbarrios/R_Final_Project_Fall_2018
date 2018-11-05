@@ -1,0 +1,149 @@
+---
+title: "Final Project: Can a data set help to choose antibiotic?"
+author: "Miguel Barrios Barrios, NYU, Sackler Institute"
+date: "30 de octubre de 2018"
+output: html_document
+keep_med: yes
+---
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+micro_events <- read.csv("https://raw.githubusercontent.com/kannan-kasthuri/kannan-kasthuri.github.io/master/Datasets/MIMIC3/microbiologyevents.csv",na.strings = "NA")
+str(micro_events)
+```
+
+```{r}
+micro_events$ab_name <- factor(micro_events$ab_name)
+                               #labels = c("AMIKACIN","AMPICILLIN","AMPICILLIN/SULBACTAM","CEFAZOLIN","CEFEPIME","CEFTAZIDIME","CEFTRIAXONE","CEFUROXIME","CHLORAMPHENICOL","CIPROFLOXACIN","CLINDAMYCIN"," ERYTHROMYCIN","GENTAMICIN","IMIPENEM","LEVOFLOXACIN","LINEZOLID","MEROPENEM","NITROFURANTOIN","OXACILLIN","PENICILLIN","PENCICILLIN G","PIPERACILLIN","PIPERACILLIN/TAZO","RIFAMPIN","TETRACYCLINE","TOBRAMYCIN","TRIMETHOPRIM/SULFA","VANCOMYCIN", "NA"))
+```
+
+```{r}
+micro_events$interpretation <- factor(micro_events$interpretation, labels= c("I","R","S"))
+
+str(micro_events)
+```
+
+```{r Bar plot with Antibiotics most frequently used}
+micro_events_no_NA = na.omit(micro_events)
+library(ggplot2)
+ggplot(micro_events_no_NA)+
+geom_bar(mapping = aes(x=micro_events_no_NA$ab_name))+
+           coord_flip()
+```
+
+```{r Bar plot of Resistant and Sensitive bacteria count}
+ggplot(micro_events_no_NA)+
+geom_bar(mapping = aes(x=micro_events_no_NA$interpretation), title= "Interpretation of the sensitivity test to antibiotics", color="blue")
+```
+
+```{r Bar plot of more frequent samples cultured}
+ggplot(micro_events_no_NA)+
+geom_bar(mapping = aes(x=micro_events_no_NA$spec_type_desc))+
+  coord_flip()
+```
+
+```{r Bar plot of the Microroganisms more frequently found}
+ggplot(micro_events_no_NA)+
+geom_bar(mapping = aes(x=micro_events_no_NA$org_name))+
+  coord_flip()
+
+```
+
+```{r}
+library(tidyverse)
+ggplot(micro_events_no_NA)+
+  geom_point(aes(x=org_name, y= ab_name)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+```{r Bar plot of Antibiotics with Bacterial resistance}
+library(tidyverse)
+ggplot(micro_events_no_NA)+
+  geom_point(aes(x=org_name, y= ab_name, color= interpretation))
+```
+
+```{r Bacteria resistant to antibiotics}
+library(tidyverse)
+ggplot(micro_events_no_NA)+
+  geom_point(aes(x=org_name, y= ab_name, color= interpretation))+
+  coord_flip()
+```
+
+```{r Scatered plot of Antibiotics with bacterial resistance}
+library(tidyverse)
+ggplot(micro_events_no_NA)+
+  geom_point(aes(x=org_name, y= ab_name))+
+  facet_wrap(~interpretation, nrow = 1)
+  
+```
+
+```{r Bacteria with resistance to antibiotics}
+library(tidyverse)
+ggplot(micro_events_no_NA)+
+  geom_point(aes(x=org_name, y= ab_name))+
+  facet_wrap(~interpretation, nrow = 1)+
+  coord_flip()
+```
+
+```{r}
+library(tidyverse)
+new_micro_tibble <- as.tibble(filter(micro_events_no_NA, interpretation== "R", ab_itemid))
+new_micro_tibble
+```
+
+```{r}
+select_micro_tibble <- as.tibble(select(new_micro_tibble, interpretation, spec_type_desc, org_name, ab_name, ab_itemid))
+select_micro_tibble
+```
+
+```{r}
+#How do you choose antibiotic treatment?Leonard Leibovici, chairman,a Ilana Shraga, physician,a and Steen Andreassen, readerb
+
+#In choosing antibiotic treatment, the benefits and detriments associated with each drug should be compared
+##Cost effectiveness analysis can serve as a framework for such a comparison
+#The benefit associated with appropriate antibiotic treatment may be so great that drug costs and side effects become secondary considerations
+#The development of future resistance is the major concern
+#In choosing antibiotic treatment, doctors have to choose between the interests of present and future patients
+
+#How do you choose antibiotic treatment?Leonard Leibovici, chairman,a Ilana Shraga, physician,a and Steen Andreassen, readerb https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1115976/#B28
+
+```
+
+
+
+
+
+
+
+```{r}
+library(tidyverse)
+ggplot(select_micro_tibble)+
+  geom_point(aes(x=org_name, y= ab_name))
+  
+```
+
+```{r Plot of Bacteria and Antibiotics resistance}
+library(tidyverse)
+ggplot(select_micro_tibble)+
+  geom_point(aes(x=org_name, y= ab_name))+
+  coord_flip()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  
+```
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r Summary of most frequent samples, most frequqent resistant bacteria and antibiotics with bacterial resistance}
+summary(select_micro_tibble)
+```
+
+#
